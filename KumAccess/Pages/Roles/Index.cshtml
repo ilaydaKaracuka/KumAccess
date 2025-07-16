@@ -1,0 +1,223 @@
+﻿@page
+@model KumAccess.Pages.Roles.IndexModel
+@{
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/Applications.css" />
+    <link rel="stylesheet" href="~/css/create.css" />
+}
+<div class="main-wrapper">
+    <div class="header-container-role">
+        <div class="header-item-app">Role ID</div>
+        <div class="header-item" style="margin-left:20px">Role Name</div>
+    </div>
+
+    <div class="scroll-content">
+        @foreach (var role in Model.Roles)
+{
+      
+        <div class="app-box-container">
+            <div class="app-box">
+                <div class="app-column">
+                    <div class="app-text">@role.RoleId</div>
+                </div>
+                <div class="app-column">
+                    <div class="app-text" >@role.RoleName</div>
+                </div>
+            </div>
+            <img src="~/images/details.png" alt="Details" class="details-icon" />
+        </div>
+}
+
+    </div>
+</div>
+<!-- Popup -->
+<div class="popup-overlay" id="popup_roles" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 9999;">
+    <div class="popup-box" style="background:#D9D9D9; padding: 20px; border-radius: 8px; min-width: 300px;">
+        <form method="post" id="roleForm">
+            @Html.AntiForgeryToken()
+
+            <input type="text" id="roleName" name="RoleName"
+                   placeholder="Enter role name"
+                   style="width: 100%; padding: 8px; border: 2px solid #B1B9C4; border-radius: 4px; box-sizing: border-box;" />
+
+            <div class="popup-buttons" style="margin-top: 10px; display: flex; justify-content: space-between;">
+                <button id="btnSaveApplication" type="submit"
+                        style="background-color: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Save
+                </button>
+                <button class="btn-cancel" type="button" onclick="closePopup()"
+                        style="background-color: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- accordion -->
+
+<div class="accordion-wrapper" id="roleAccordion" style="display:none; overflow-y: auto; max-height: 500px;">
+    <div class="accordion-card">
+        <button class="accordion-header" onclick="toggleAccordion(this)">User Permissions</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="role_userTable">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>User Name</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <!-- Diğer kullanıcı satırları buraya -->
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+</div>
+<script>
+    // ✅ toggleAccordion globalde tanımlandı
+    function toggleAccordion(button) {
+        const body = button.nextElementSibling;
+        if (body.style.display === "flex") {
+            body.style.display = "none";
+        } else {
+            body.style.display = "flex";
+        }
+    }
+
+    function showAccordion() {
+        document.getElementById("roleAccordion").style.display = "block";
+    }
+
+    function hideAccordion() {
+        document.getElementById("roleAccordion").style.display = "none";
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const detailIcons = document.querySelectorAll('.details-icon');
+        detailIcons.forEach(icon => {
+            icon.addEventListener('click', async function (event) {
+                event.stopPropagation();
+
+                const roleId = this.closest('.app-box-container')
+                    .querySelector('.app-text').textContent.trim();
+
+                console.log("Details tıklanan RoleId: ", roleId);
+
+                const response = await fetch('/Roles/Index?handler=GetRoleUsers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ roleId: parseInt(roleId) })
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error("Sunucu hatası:", text);
+                    alert("Sunucudan veri alınamadı!");
+                    return;
+                }
+
+                const result = await response.json();
+
+                const tbody = document.querySelector('#role_userTable tbody');
+                tbody.innerHTML = '';
+
+                result.forEach(user => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${user.userId}</td>
+                            <td>${user.userName}</td>
+                        </tr>
+                    `;
+                });
+
+                showAccordion();
+            });
+        });
+
+        const appBoxes = document.querySelectorAll('.app-box');
+        setEqualWidth(appBoxes);
+
+        window.addEventListener('resize', function () {
+            setEqualWidth(appBoxes);
+        });
+
+        function setEqualWidth(boxes) {
+            let maxWidth = 0;
+            boxes.forEach(function (box) {
+                const boxWidth = box.offsetWidth;
+                if (boxWidth > maxWidth) {
+                    maxWidth = boxWidth;
+                }
+            });
+
+            boxes.forEach(function (box) {
+                box.style.width = maxWidth + 'px';
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            const accordion = document.getElementById('roleAccordion');
+            const isClickInsideAccordion = accordion.contains(event.target);
+            const isClickOnButton = event.target.classList.contains('accordion-header');
+
+            if (!isClickInsideAccordion && !isClickOnButton) {
+                hideAccordion();
+            }
+        });
+
+        const roleForm = document.getElementById('roleForm');
+        if (roleForm) {
+            roleForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const rolNameInput = document.getElementById('roleName');
+                const rolName = rolNameInput.value.trim();
+
+                if (!rolName) {
+                    alert("Role name cannot be empty.");
+                    return;
+                }
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                fetch('@Url.Page("/Roles/Index", "AddRole")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ RoleName: rolName })
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok, status: ' + res.status);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        closePopup();
+                        rolNameInput.value = '';
+                    } else {
+                        alert(data.message || "Error saving role.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert("An error occurred: " + error.message);
+                });
+            });
+        }
+    });
+</script>
+

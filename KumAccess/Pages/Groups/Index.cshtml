@@ -1,0 +1,359 @@
+﻿@page
+@model KumAccess.Pages.Groups.IndexModel
+@{
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/Applications.css" />
+    <link rel="stylesheet" href="~/css/create.css" />
+}
+
+<!-- group-index -->
+
+<div class="main-wrapper">
+    <div class="header-container-role">
+        <div class="header-item-app">Group ID</div>
+        <div class="header-item" style="margin-left:40px">Group Name</div>
+    </div>
+
+    <div class="scroll-content">
+        @foreach (var group in Model.Groups)
+        {
+        <div class="app-box-container">
+            <div class="app-box">
+                <div class="app-column">
+                    <div class="app-text">@group.GroupId</div>
+                </div>
+                <div class="app-column">
+                    <div class="app-text">@group.GroupName</div>
+                </div>
+            </div>
+            <img src="~/images/details.png" alt="Details" class="details-icon" />
+            <img src="~/images/settings.png" alt="Details" class="settings-icon" style="width: 32px; height: 32px; margin-left:10px;     cursor: pointer;
+" />
+        </div>
+        }
+    </div>
+</div>
+
+<!-- Popup Groups -->
+<div class="popup-overlay" id="popup_groups" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 9999;">
+    <div class="popup-box" style="background:#D9D9D9; padding: 20px; border-radius: 8px; min-width: 300px;">
+        <form method="post" id="groupForm">
+            @Html.AntiForgeryToken()
+
+            <input type="text" id="groupName" name="GroupName"
+                   placeholder="Enter group name"
+                   style="width: 100%; padding: 8px; border: 2px solid #B1B9C4; border-radius: 4px; box-sizing: border-box;" />
+
+            <div class="popup-buttons" style="margin-top: 10px; display: flex; justify-content: space-between;">
+                <button id="btnSaveApplication" type="submit"
+                        style="background-color: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Save
+                </button>
+                <button class="btn-cancel" type="button" onclick="closePopup()"
+                        style="background-color: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- accordion -->
+<div class="accordion-wrapper" id="groupAccordion" style="display:none; overflow-y: auto; max-height: 500px;">
+    <div class="accordion-card">
+        
+        <button class="accordion-header" onclick="toggleAccordion(this)">User Permissions</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="group_userTable">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>User Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Diğer kullanıcı satırları buraya -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- settings accordion -->
+<div class="accordion-wrapper" id="groupSettingsAccordion" style="display:none; overflow-y: auto; max-height: 500px;">
+    <div class="accordion-card">
+        <div style="text-align: right; margin: 10px;">
+            <button class="save-button" onclick="saveApplications()" style="    background-color: #4CAF50;">Save</button>
+        </div>
+        <button class="accordion-header" onclick="toggleAccordion(this)">Select Application</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="groupSettings_app">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+
+                        <th>Application ID</th>
+                        <th>Application Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in Model.Applications)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" id="user_app_chekbox" name="appSelection" value="@app.ApplicationId" />
+                            </td>
+                            <td>@app.ApplicationId</td>
+                            <td>@app.ApplicationName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <button class="accordion-header" onclick="toggleAccordion(this)">Select Role</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="groupSettings_role">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+
+                        <th>Role ID</th>
+                        <th>Role Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="appSelection" value="@role.RoleId" />
+                            </td>
+                            <td>@role.RoleId</td>
+                            <td>@role.RoleName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<form id="token-form" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<script>
+        let selectedGroupId = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+           const detailIcons = document.querySelectorAll('.details-icon');
+        detailIcons.forEach(icon => {
+            icon.addEventListener('click', async function (event) {
+                event.stopPropagation();
+
+                const container = this.closest('.app-box-container');
+                const groupId = parseInt(container.querySelector('.app-text').innerText.trim());
+                selectedGroupId = groupId;
+
+                console.log("Tıklanan GroupId:", groupId);
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const response = await fetch('/Groups/Index?handler=GetGroupUsers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ groupId })
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error("Sunucu hatası:", text);
+                    alert("Veriler alınamadı.");
+                    return;
+                }
+
+                const result = await response.json();
+
+                const tbody = document.querySelector('#group_userTable tbody');
+                tbody.innerHTML = '';
+
+                result.forEach(user => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${user.userId}</td>
+                            <td>${user.userName}</td>
+                        </tr>
+                    `;
+                });
+
+                showAccordion('groupAccordion');
+            });
+
+                   const settingsIcons = document.querySelectorAll('.settings-icon');
+    settingsIcons.forEach(icon => {
+        icon.addEventListener('click', function (event) {
+            event.stopPropagation();
+
+            const container = this.closest('.app-box-container');
+            const groupIdText = container.querySelector('.app-text').innerText;
+            selectedGroupId = parseInt(groupIdText);
+
+            showAccordion('groupSettingsAccordion');
+        });
+    });
+
+        });
+             const appBoxes = document.querySelectorAll('.app-box');
+
+            setEqualWidth(appBoxes);
+
+            window.addEventListener('resize', function() {
+                setEqualWidth(appBoxes);
+            });
+
+            function setEqualWidth(boxes) {
+                let maxWidth = 0;
+                boxes.forEach(function(box) {
+                    const boxWidth = box.offsetWidth;
+                    if (boxWidth > maxWidth) {
+                        maxWidth = boxWidth;
+                    }
+                });
+
+                boxes.forEach(function(box) {
+                    box.style.width = maxWidth + 'px';
+                });
+            }
+       
+    });
+
+    function showAccordion(accordionId) {
+        hideAccordion('groupAccordion');
+        hideAccordion('groupSettingsAccordion');
+
+        document.getElementById(accordionId).style.display = "block";
+    }
+
+    function hideAccordion(accordionId) {
+        document.getElementById(accordionId).style.display = "none";
+    }
+
+    function toggleAccordion(button) {
+        const body = button.nextElementSibling;
+        if (body.style.display === "flex") {
+            body.style.display = "none";
+        } else {
+            body.style.display = "flex";
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const groupAccordion = document.getElementById('groupAccordion');
+        const groupSettingsAccordion = document.getElementById('groupSettingsAccordion');
+        const isClickInsideAccordion = groupAccordion.contains(event.target) || groupSettingsAccordion.contains(event.target);
+        const isClickOnButton = event.target.classList.contains('accordion-header');
+
+        if (!isClickInsideAccordion && !isClickOnButton) {
+            hideAccordion('groupAccordion');
+            hideAccordion('groupSettingsAccordion');
+        }
+                }); 
+
+
+
+             document.getElementById('groupForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const grNameInput = document.getElementById('groupName');
+    const grName = grNameInput.value.trim();
+
+    if (!grName) {
+        alert("Group name cannot be empty.");
+        return;
+    }
+
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    fetch('@Url.Page("/Groups/Index", "AddGroup")', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': token
+        },
+        body: JSON.stringify({ GroupName: grName }) 
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error('Network response was not ok, status: ' + res.status);
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closePopup();
+            grNameInput.value = '';
+        } else {
+            alert(data.message || "Error saving group.");
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert("An error occurred: " + error.message);
+    });
+});
+
+     async function saveApplications() {
+            if (!selectedGroupId) {
+                alert("Lütfen önce bir grup ayarlarını açın.");
+                return;
+            }
+
+                const selectedAppCheckboxes = document.querySelectorAll('#groupSettings_app input[type="checkbox"]:checked');
+                const selectedRoleCheckboxes = document.querySelectorAll('#groupSettings_role input[type="checkbox"]:checked');
+
+            const selectedAppIds = Array.from(selectedAppCheckboxes).map(cb => parseInt(cb.value));
+            const selectedRoleIds = Array.from(selectedRoleCheckboxes).map(cb => parseInt(cb.value));
+         if ((selectedAppIds.length > 0 && selectedRoleIds.length === 0) ||
+            (selectedRoleIds.length > 0 && selectedAppIds.length === 0)){
+            alert("Lütfen en az bir uygulama veya bir rol seçin.");
+            return;
+        }
+
+
+            const token = document.querySelector('#token-form input[name="__RequestVerificationToken"]').value;
+
+            for (const appId of selectedAppIds) {
+                for (const roleId of selectedRoleIds) {
+                    const payload = {
+                        GroupId: selectedGroupId,
+                        applicationId: appId,
+                        roleId: roleId
+                    };
+
+                        await fetch('/Groups/Index?handler=SaveGroupAppRole', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify(payload)
+        });
+
+                }
+            }
+
+            alert("Kayıtlar başarıyla eklendi.");
+
+       
+
+             document.querySelectorAll('#groupSettings_app input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('#groupSettings_role input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+        }
+</script>

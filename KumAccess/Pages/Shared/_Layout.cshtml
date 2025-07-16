@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] KumAccess</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/main.css" />
+    <link rel="stylesheet" href="~/css/create.css" />
+
+    <link rel="stylesheet" href="~/KumAccess.styles.css" asp-append-version="true" />
+    <link rel="icon" type="image/png" href="~/images/kumaccess_icon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600&display=swap" rel="stylesheet" />
+    @RenderSection("Styles", required: false)
+
+    <style>
+        .ul_inner_div, .ul_inner_div_role {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+
+        <div class="sidebar">
+            <div class="app_name_and_icon">
+                <img src="~/images/kumaccess_icon.png" class="kumaccess_icon" alt="KumAccess Icon" />
+                <span class="kumaccess_text">KumAccess</span>
+            </div>
+
+            <ul class="noneUl">
+                <div class="all_li">
+
+                <li>
+                    <div id="tab_applications" class="ul_inner_div" onclick="location.href='@Url.Page("/Applications/Index")'">
+                        <a href="javascript:void(0)">
+                            <img src="~/images/applications.png" alt="Applications Icon" class="sidebar_icon_app" />
+                            Applications
+                        </a>
+                    </div>
+                </li>
+
+                <li>
+                    <div id="tab_users" class="ul_inner_div" onclick="location.href='@Url.Page("/Users/Index")'">
+                        <a href="javascript:void(0)">
+                            <img src="~/images/users.png" alt="Users Icon" class="sidebar_icon_user" />
+                            Users
+                        </a>
+                    </div>
+                </li>
+
+                <li>
+                    <div id="tab_roles" class="ul_inner_div_role" onclick="location.href='@Url.Page("/Roles/Index")'">
+                        <a href="javascript:void(0)">
+                            <img src="~/images/roles.png" alt="Roles Icon" class="sidebar_icon_role" />
+                            Roles
+                        </a>
+                    </div>
+                </li>
+
+                <li>
+                    <div id="tab_groups" class="ul_inner_div" onclick="location.href='@Url.Page("/Groups/Index")'">
+                        <a href="javascript:void(0)">
+                            <img src="~/images/groups.png" alt="Groups Icon" class="sidebar_icon_group" />
+                            Groups
+                        </a>
+                    </div>
+                </li>
+
+        </div>
+        </ul>
+    </div>
+
+    <div class="content">
+            @RenderBody()
+    </div>
+
+    </div>
+
+    <button class="add-button" id="add_button" style="position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px;">
+        <img src="~/images/add.png" alt="Add Button" style="width: 100%; height: 100%;" />
+    </button>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        function closePopup() {
+            const popupRoles = document.getElementById('popup_roles');
+            if (popupRoles) popupRoles.style.display = 'none';
+
+            const popupApplications = document.getElementById('popup_applications');
+            if (popupApplications) popupApplications.style.display = 'none';
+
+            const popupGroups = document.getElementById('popup_groups');
+            if (popupGroups) popupGroups.style.display = 'none';
+
+            const popupUsers = document.getElementById('popup_users');
+            if (popupUsers) popupUsers.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            closePopup();
+
+            const currentPath = window.location.pathname.toLowerCase();
+            const addButton = document.getElementById('add_button');
+
+            // Eğer users sayfasındaysa butonu gizle
+            if (currentPath.startsWith('/users')) {
+                if (addButton) addButton.style.display = 'none';
+            } else {
+                if (addButton) addButton.style.display = 'block';
+            }
+        });
+
+        document.getElementById('add_button')?.addEventListener('click', function () {
+            const currentPath = window.location.pathname.toLowerCase();
+
+            if (currentPath.startsWith('/roles')) {
+                const popup = document.getElementById('popup_roles');
+                if (popup) popup.style.display = 'flex';
+            }
+            else if (currentPath.startsWith('/applications')) {
+                const popup = document.getElementById('popup_applications');
+                if (popup) popup.style.display = 'flex';
+            }
+            else if (currentPath.startsWith('/groups')) {
+                const popup = document.getElementById('popup_groups');
+                if (popup) popup.style.display = 'flex';
+            }
+            else if (currentPath.startsWith('/users')) {
+                const popup = document.getElementById('popup_users');
+                if (popup) popup.style.display = 'flex';
+            }
+            else {
+                closePopup();
+            }
+        });
+                document.addEventListener('DOMContentLoaded', function () {
+            closePopup();
+
+            const currentPath = window.location.pathname.toLowerCase();
+
+            const tabs = [
+                { path: '/applications', id: 'tab_applications' },
+                { path: '/users', id: 'tab_users' },
+                { path: '/roles', id: 'tab_roles' },
+                { path: '/groups', id: 'tab_groups' }
+            ];
+            if (window.location.pathname === '/' || window.location.pathname === '/Index') {
+            window.location.href = '@Url.Page("/Applications/Index")';
+        }
+            tabs.forEach(tab => {
+                if (currentPath.startsWith(tab.path)) {
+                    document.getElementById(tab.id)?.classList.add('active');
+                }
+            });
+
+            const addButton = document.getElementById('add_button');
+            if (currentPath.startsWith('/users')) {
+                if (addButton) addButton.style.display = 'none';
+            } else {
+                if (addButton) addButton.style.display = 'block';
+            }
+        });
+                 document.getElementById('applicationForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const appNameInput = document.getElementById('applicationName');
+            const appName = appNameInput.value.trim();
+
+            if (!appName) {
+                alert("Application name cannot be empty.");
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Page("/Applications/Index")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ ApplicationName: appName })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    closePopup();
+                    appNameInput.value = '';
+                } else {
+                    alert(data.message || "Error saving application.");
+                }
+            })
+            .catch(() => alert("An error occurred."));
+        });
+
+    </script>
+
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

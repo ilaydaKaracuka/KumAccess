@@ -1,0 +1,206 @@
+html {
+    font-size: 14px;
+    position: relative;
+    height: 100%;
+    margin=0;
+
+}
+
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+.active {
+    background-color: #5784BC !important;
+    color: white;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+.noneUl {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+
+}
+.main-wrapper {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.ul_inner_div {
+    background-color: #051C39;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding-left: 15px;
+    width: 95%;
+    margin-top: 0px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+
+.ul_inner_div_role {
+    background-color: #051C39;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding-left: 10px;
+    width: 95%;
+    margin-top: 0px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+
+.app_name_and_icon {
+    display: flex;
+    align-items: center;
+    margin-left: 6%;
+    gap: 10px;
+    padding: 20px 0 10px;
+    color: white;
+}
+.all_li {
+    margin-top: 20px;
+    margin-left: 3%;
+    align-items: center;
+}
+
+.kumaccess_icon {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+}
+
+.kumaccess_text {
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    margin: 0;
+    font-weight: 396;
+    margin-top:8px;
+}
+
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 16px; 
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600; 
+}
+a{
+    color:white;
+}
+
+.sidebar_icon {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    user-select: none;
+}
+.sidebar_icon_role {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    user-select: none;
+}
+.sidebar_icon_group {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    user-select: none;
+}
+
+.sidebar_icon_user {
+    width: 23px;
+    height: 23px;
+    object-fit: contain;
+    user-select: none;
+}
+
+.sidebar_icon_app {
+    width: 23px;
+    height: 23px;
+    object-fit: contain;
+    user-select: none;
+}
+
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 290px;
+    background-color: #09284F;
+    color: white;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 0;
+    transition: width 0.3s ease;
+
+}
+    .sidebar .ul_inner_div a, 
+    .sidebar .ul_inner_div_role a {
+        color: white !important;
+        font-weight: 400;
+    }
+.content {
+    height: 100vh;
+    overflow: auto;
+    margin-left: 290px; 
+    display: flex;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+.add-button {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+@media (max-width: 767px) {
+    .sidebar {
+        position: fixed;
+        width: 100%;
+        height: auto;
+        z-index: 1000;
+    }
+
+    .content {
+        margin-left: 0;
+        padding-top: 60px;
+
+    }
+}

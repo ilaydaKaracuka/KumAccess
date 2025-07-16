@@ -1,0 +1,267 @@
+﻿@page
+@model KumAccess.Pages.Applications.IndexModel
+@{
+    Layout = "_Layout";
+}
+<!-- app-index -->
+@section Styles {
+    <link rel="stylesheet" href="~/css/Applications.css" />
+}
+
+
+<div class="main-wrapper">
+    <div class="header-container">
+        <div class="header-item-app">Application ID</div>
+        <div class="header-item" style="  margin-left: -50px;">Application Name</div>
+    </div>
+
+    <div class="scroll-content">
+        @foreach (var app in Model.Applications)
+{
+        <div class="app-box-container">
+            <div class="app-box">
+                <div class="app-column">
+                        <div class="app-text">@app.ApplicationId</div>
+                </div>
+                <div class="app-column">
+                        <div class="app-text" >@app.ApplicationName</div>
+                </div>
+            </div>
+            <img src="~/images/details.png" alt="Details" class="details-icon" />
+        </div>
+        }
+    </div>
+</div>
+<!-- Popup Applications -->
+<div class="popup-overlay" id="popup_applications" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 9999;">
+    <div class="popup-box" style="background:#D9D9D9; padding: 20px; border-radius: 8px; min-width: 300px;">
+        <form method="post" id="applicationForm">
+            @Html.AntiForgeryToken()
+
+            <input type="text" id="applicationName" name="ApplicationName"
+                   placeholder="Enter application name"
+                   style="width: 100%; padding: 8px; border: 2px solid #B1B9C4; border-radius: 4px; box-sizing: border-box;" />
+
+            <div class="popup-buttons" style="margin-top: 10px; display: flex; justify-content: space-between;">
+                <button id="btnSaveApplication" type="submit"
+                        style="background-color: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Save
+                </button>
+                <button class="btn-cancel" type="button" onclick="closePopup()"
+                        style="background-color: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+<!-- accordion -->
+
+<div class="accordion-wrapper" id="applicationAccordion" style="display:none; overflow-y: auto; max-height: 500px;">
+    <div class="accordion-card">
+        <button class="accordion-header" onclick="toggleAccordion(this)">User Permissions</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="app_userTable">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>User Name</th>
+                        <th>User Surname</th>
+                        <th>User Roles</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <!-- Diğer kullanıcı satırları buraya -->
+                </tbody>
+            </table>
+        </div>
+
+        <button class="accordion-header" onclick="toggleAccordion(this)">Group Permissions</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="app_groupTable">
+                <thead>
+                    <tr>
+                        <th>Group ID</th>
+                        <th>Group Name</th>
+                        <th>Group Roles</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <!-- Diğer grup satırları -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+                 const detailIcons = document.querySelectorAll('.details-icon');
+        detailIcons.forEach(icon => {
+            icon.addEventListener('click', async function (event) {
+                event.stopPropagation();
+
+                const container = this.closest('.app-box-container');
+                const appIdText = container.querySelector('.app-text').innerText.trim();
+                const applicationId = parseInt(appIdText);
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const response = await fetch('/Applications/Index?handler=GetAppGroups', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ applicationId })
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error("Sunucu hatası:", text);
+                    alert("Veriler alınamadı.");
+                    return;
+                }
+
+                const result = await response.json();
+
+                // Kullanıcı ve grup verilerini tabloya ekle
+                const tbodyGroup = document.querySelector('#app_groupTable tbody');
+                tbodyGroup.innerHTML = '';
+
+                result.forEach(item => {
+                    tbodyGroup.innerHTML += `
+                        <tr>
+                            <td>${item.groupId}</td>
+                            <td>${item.groupName}</td>
+                            <td>${item.roleName}</td>
+                        </tr>
+                    `;
+                });
+
+                showAccordion();
+            });
+        });
+    });
+     const appBoxes = document.querySelectorAll('.app-box');
+
+        setEqualWidth(appBoxes);
+
+        window.addEventListener('resize', function() {
+            setEqualWidth(appBoxes);
+        });
+
+        function setEqualWidth(boxes) {
+            let maxWidth = 0;
+            boxes.forEach(function(box) {
+                const boxWidth = box.offsetWidth;
+                if (boxWidth > maxWidth) {
+                    maxWidth = boxWidth;
+                }
+            });
+
+            boxes.forEach(function(box) {
+                box.style.width = maxWidth + 'px';
+            });
+        }
+    function toggleAccordion(button) {
+        const body = button.nextElementSibling;
+        if (body.style.display === "flex") {
+            body.style.display = "none";
+        } else {
+            body.style.display = "flex";
+        }
+    }
+        async function fetchGroupData(applicationId, token) {
+        const response = await fetch('/Applications/Index?handler=GetAppGroups', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify({ applicationId })
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            console.error("Group verisi alınamadı:", text);
+            alert("Grup verisi alınamadı.");
+            return [];
+        }
+
+        return await response.json();
+    }
+
+    function showAccordion() {
+        document.getElementById("applicationAccordion").style.display = "block";
+    }
+
+    function hideAccordion() {
+        document.getElementById("applicationAccordion").style.display = "none";
+    }
+
+    document.addEventListener('click', function (event) {
+        const accordion = document.getElementById('applicationAccordion');
+        const isClickInsideAccordion = accordion.contains(event.target);
+        const isClickOnButton = event.target.classList.contains('accordion-header');
+        const isClickOnDetailsIcon = event.target.classList.contains('details-icon');
+
+        if (!isClickInsideAccordion && !isClickOnButton && !isClickOnDetailsIcon) {
+            hideAccordion();
+        }
+    });
+              document.getElementById('applicationForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const appNameInput = document.getElementById('applicationName');
+        const appName = appNameInput.value.trim();
+
+        if (!appName) {
+            alert("Application name cannot be empty.");
+            return;
+        }
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch('@Url.Page("/Applications/Index", "AddApplication")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify({ ApplicationName: appName })
+        })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Network response was not ok, status: ' + res.status);
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closePopup();
+                appNameInput.value = '';
+            } else {
+                alert(data.message || "Error saving application.");
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert("An error occurred: " + error.message);
+        });
+    });
+       
+
+</script>
+
+

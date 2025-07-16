@@ -1,0 +1,319 @@
+﻿@page
+@model KumAccess.Pages.Users.IndexModel
+@{
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Applications.css" />
+    <link rel="stylesheet" href="~/css/create.css" />
+}
+
+<!-- user-index -->
+<div class="main-wrapper">
+    <div class="header-container-role">
+        <div class="header-item-app">User ID</div>
+        <div class="header-item">User Name</div>
+        <div class="header-item">User Surname</div>
+        <div class="header-item">User TC</div>
+    </div>
+    <div class="scroll-content">
+
+        @foreach (var user in Model.Users)
+        {
+            <div class="app-box-container">
+                <div class="app-box">
+                    <div class="app-column">
+                        <div class="app-text">@user.UserId</div>
+                    </div>
+                    <div class="app-column">
+                        <div class="app-text">@user.FirstName</div>
+                    </div>
+                    <div class="app-column">
+                        <div class="app-text">@user.LastName</div>
+                    </div>
+                    <div class="app-column">
+                        <div class="app-text">@user.TC</div>
+                    </div>
+                </div>
+                <img src="~/images/details.png" alt="Details" class="details-icon" />
+                <img src="~/images/settings.png" alt="Settings" class="settings-icon" data-userid="@user.UserId" style="width: 32px; height: 32px; margin-left:10px; cursor: pointer;" />
+            </div>
+        }
+    </div>
+</div>
+
+<!-- settings accordion -->
+<div class="accordion-wrapper" id="userSettingsAccordion" style="display:none; overflow-y: auto; max-height: 500px;">
+    <div class="accordion-card">
+        <div style="text-align: right; margin: 10px; ">
+            <button class="save-button" onclick="saveApplications()" style="    background-color: #4CAF50;">
+                Save
+            </button>
+        </div>
+        <button class="accordion-header" onclick="toggleAccordion(this)">Select Application</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="usersSettings_app">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Application ID</th>
+                        <th>Application Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in Model.Applications)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" id="user_app_chekbox" name="appSelection" value="@app.ApplicationId" />
+                            </td>
+                            <td>@app.ApplicationId</td>
+                            <td>@app.ApplicationName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <button class="accordion-header" onclick="toggleAccordion(this)">Select Role</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="usersSettings_role">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Role ID</th>
+                        <th>Role Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" id="user_role_chekbox" name="appSelection" value="@role.RoleId" />
+                            </td>
+                            <td>@role.RoleId</td>
+                            <td>@role.RoleName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <button class="accordion-header" onclick="toggleAccordion(this)">Select Group</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="usersSettings_group">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Group ID</th>
+                        <th>Group Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var group in Model.Groups)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" id="user_group_chekbox_@group.GroupId" name="groupSelection" value="@group.GroupId" />
+                            </td>
+                            <td>@group.GroupId</td>
+                            <td>@group.GroupName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- accordion -->
+<div class="accordion-wrapper" id="userAccordion" style="display:none; overflow-y: auto; max-height: 500px;">
+    <div class="accordion-card">
+        <button class="accordion-header" onclick="toggleAccordion(this)">User Permissions</button>
+        <div class="accordion-body">
+            <table class="permission-table" id="user_appTable">
+                <thead>
+                    <tr>
+                        <th>Application ID</th>
+                        <th>Application Name</th>
+                        <th>User Roles</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Diğer kullanıcı satırları buraya -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<form id="token-form" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<script>
+    let selectedUserId = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const settingsIcons = document.querySelectorAll('.settings-icon');
+        settingsIcons.forEach(icon => {
+            icon.addEventListener('click', function (event) {
+            event.stopPropagation();
+            selectedUserId = this.getAttribute('data-userid');
+            console.log('Seçilen UserId:', selectedUserId);
+
+            showAccordion('userSettingsAccordion');
+        });
+        });
+             const detailIcons = document.querySelectorAll('.details-icon');
+        detailIcons.forEach(icon => {
+            icon.addEventListener('click', async function () {
+                const userId = this.closest('.app-box-container').querySelector('.app-text').textContent.trim();
+                console.log("Details tıklanan UserId: ", userId);
+
+                const response = await fetch(`/Users/Index?handler=GetUserPermissions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('#token-form input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ userId: parseInt(userId) })
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error("Sunucu hatası:", text);
+                    alert("Sunucudan veri alınamadı!");
+                    return;
+                }
+
+                const result = await response.json();
+
+                const tbody = document.querySelector('#user_appTable tbody');
+                tbody.innerHTML = '';
+
+                result.forEach(entry => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${entry.applicationId}</td>
+                            <td>${entry.applicationName}</td>
+                            <td>${entry.roleName}</td>
+                        </tr>
+                    `;
+                });
+
+                showAccordion('userAccordion');
+            });
+        });
+    });
+
+    
+       
+    function showAccordion(accordionId) {
+        document.getElementById(accordionId).style.display = "block";
+    }
+
+    function hideAccordion(accordionId) {
+        document.getElementById(accordionId).style.display = "none";
+    }
+
+       function toggleAccordion(button) {
+        const body = button.nextElementSibling;
+
+        if (body.style.display === "flex" || window.getComputedStyle(body).display === "flex") {
+            body.style.display = "none";
+        } else {
+            body.style.display = "flex";
+        }
+    }
+
+
+    document.addEventListener('click', function(event) {
+        const userSettingsAccordion = document.getElementById('userSettingsAccordion');
+        const isClickInsideAccordion = userSettingsAccordion.contains(event.target);
+        const isClickOnButton = event.target.classList.contains('accordion-header');
+
+        if (!isClickInsideAccordion && !isClickOnButton) {
+            hideAccordion('userSettingsAccordion');
+        }
+           const userAccordion = document.getElementById('userAccordion');
+    const isClickInsideUserAccordion = userAccordion.contains(event.target);
+    const isClickOnDetailsIcon = event.target.classList.contains('details-icon');
+
+    if (!isClickInsideUserAccordion && !isClickOnDetailsIcon) {
+        hideAccordion('userAccordion');
+    }
+    });
+
+
+
+    async function saveApplications() {
+        if (!selectedUserId) {
+            alert("Lütfen önce bir kullanıcının ayarlarını açın.");
+            return;
+        }
+
+        const selectedAppCheckboxes = document.querySelectorAll('#usersSettings_app input[type="checkbox"]:checked');
+        const selectedRoleCheckboxes = document.querySelectorAll('#usersSettings_role input[type="checkbox"]:checked');
+
+        const selectedAppIds = Array.from(selectedAppCheckboxes).map(cb => parseInt(cb.value));
+        const selectedRoleIds = Array.from(selectedRoleCheckboxes).map(cb => parseInt(cb.value));
+     if ((selectedAppIds.length > 0 && selectedRoleIds.length === 0) ||
+        (selectedRoleIds.length > 0 && selectedAppIds.length === 0)){
+        alert("Lütfen en az bir uygulama veya bir rol seçin.");
+        return;
+    }
+
+
+        const token = document.querySelector('#token-form input[name="__RequestVerificationToken"]').value;
+
+        for (const appId of selectedAppIds) {
+            for (const roleId of selectedRoleIds) {
+                    const payload = {
+        userId: parseInt(selectedUserId),
+        applicationId: appId,
+        roleId: roleId
+    };
+
+
+                    await fetch('/Users/Index?handler=SaveUserAppRole', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': token
+        },
+        body: JSON.stringify(payload)
+    });
+
+            }
+        }
+
+        alert("Kayıtlar başarıyla eklendi.");
+
+    const selectedGroupCheckboxes = document.querySelectorAll('#usersSettings_group input[type="checkbox"]:checked');
+    const selectedGroupIds = Array.from(selectedGroupCheckboxes).map(cb => parseInt(cb.value));
+
+    for (const groupId of selectedGroupIds) {
+        const payload = {
+        userId: parseInt(selectedUserId),
+            groupId: groupId
+        };
+
+        await fetch('/Users/Index?handler=SaveUserGroup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify(payload)
+        });
+    }
+
+         document.querySelectorAll('#usersSettings_app input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('#usersSettings_role input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('#usersSettings_group input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    }
+
+</script>
