@@ -15,14 +15,14 @@ namespace KumAccess.Pages.Users
         private readonly UserAppRoleSet _userAppRoleSet;
         private readonly UserGroupSet _userGroupSet;
         private readonly UserAppRoleGet _userAppRoleGet;
-
+        private readonly UserGroupGet _userGroupGet;
         public List<User> Users { get; set; }
         public List<App> Applications { get; set; }
         public List<Role> Roles { get; set; }
         public List<Group> Groups { get; set; }
 
 
-        public IndexModel(UserGet userService, ApplicationGet applicationService, RoleGet roleService, GroupGet groupService, UserAppRoleSet userAppRoleSet, UserGroupSet userGroupSet ,UserAppRoleGet userAppRoleGet)
+        public IndexModel(UserGet userService, ApplicationGet applicationService, RoleGet roleService, GroupGet groupService, UserAppRoleSet userAppRoleSet, UserGroupSet userGroupSet ,UserAppRoleGet userAppRoleGet, UserGroupGet userGroupGet)
         {
             _userService = userService;
             _applicationService = applicationService;
@@ -31,6 +31,7 @@ namespace KumAccess.Pages.Users
             _userAppRoleSet = userAppRoleSet;
             _userGroupSet = userGroupSet;
             _userAppRoleGet = userAppRoleGet;
+            _userGroupGet = userGroupGet;
 
 
         }
@@ -52,56 +53,83 @@ namespace KumAccess.Pages.Users
                 using var reader = new StreamReader(Request.Body);
                 var body = await reader.ReadToEndAsync();
 
-                Console.WriteLine(" Gelen JSON:");
-                Console.WriteLine(body);
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var payload = JsonSerializer.Deserialize<SaveUserAppRoleRequest>(body, options);
 
-                if (payload != null && payload.UserId > 0 && payload.ApplicationId > 0 && payload.RoleId > 0)
+                // Geçersiz veri kontrolü
+                if (payload == null || payload.UserId <= 0 || payload.ApplicationId <= 0 || payload.RoleId <= 0)
                 {
-                    Console.WriteLine($" Insert denemesi: UserId={payload.UserId}, AppId={payload.ApplicationId}, RoleId={payload.RoleId}");
-
-                    await _userAppRoleSet.AddUserAppRoleAsync(payload.UserId, payload.ApplicationId, payload.RoleId);
-
-                    Console.WriteLine(" Veritabanýna baþarýyla eklendi!");
-                    return new JsonResult(new { success = true });
+                    return BadRequest(new { success = false, message = "Eksik veya hatalý veri." });
                 }
 
-                Console.WriteLine(" Geçersiz veri!");
-                return BadRequest("Eksik veya hatalý veri.");
+                // Zaten atanmýþ mý kontrolü
+                var existing = _userAppRoleGet.GetAllUserAppRoles()
+                    .Any(x => x.UserId == payload.UserId &&
+                              x.ApplicationId == payload.ApplicationId &&
+                              x.RoleId == payload.RoleId);
+
+                if (existing)
+                {
+                    Console.WriteLine("Bu kullanýcýya bu uygulama ve rol zaten atanmýþ.");
+                    return new JsonResult(new { success = false, message = "Bu kullanýcýya bu uygulama ve rol zaten atanmýþ." });
+                }
+
+                // Ekleme iþlemi
+                await _userAppRoleSet.AddUserAppRoleAsync(payload.UserId, payload.ApplicationId, payload.RoleId);
+
+                return new JsonResult(new { success = true, message = "Kayýt baþarýyla eklendi." });
             }
             catch (Exception ex)
             {
-                Console.WriteLine(" HATA: " + ex.Message);
-                Console.WriteLine("StackTrace: " + ex.StackTrace); // Hata detaylarýný daha ayrýntýlý görmek için
-                return StatusCode(500, "Sunucu hatasý: " + ex.Message);
+                Console.WriteLine("HATA: " + ex.Message);
+                return StatusCode(500, new { success = false, message = "Sunucu hatasý: " + ex.Message });
             }
         }
+
 
 
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnPostSaveUserGroupAsync()
         {
-            using var reader = new StreamReader(Request.Body);
-            var body = await reader.ReadToEndAsync();
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var payload = JsonSerializer.Deserialize<SaveUserGroupRequest>(body, options);
-
-            if (payload != null && payload.UserId > 0 && payload.GroupId > 0)
+            try
             {
-                await _userGroupSet.AddUserGroupAsync(payload.UserId, payload.GroupId);
-                return new JsonResult(new { success = true });
-            }
-            Console.WriteLine("Gelen payload:");
-            Console.WriteLine($"UserId: {payload?.UserId}, GroupId: {payload?.GroupId}");
+                using var reader = new StreamReader(Request.Body);
+                var body = await reader.ReadToEndAsync();
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var payload = JsonSerializer.Deserialize<SaveUserGroupRequest>(body, options);
 
-            return BadRequest("Eksik ya da hatalý veri.");
+                if (payload == null || payload.UserId <= 0 || payload.GroupId <= 0)
+                {
+                    return BadRequest("Eksik ya da hatalý veri.");
+                }
+
+                var exists = _userGroupGet.GetAllUserGroups()
+                    .Any(x => x.UserId == payload.UserId && x.GroupId == payload.GroupId);
+
+                if (exists)
+                {
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = "Bu kullanýcý zaten bu gruba atanmýþ."
+                    });
+                }
+
+                await _userGroupSet.AddUserGroupAsync(payload.UserId, payload.GroupId);
+
+                return new JsonResult(new
+                {
+                    success = true,
+                    message = "Kullanýcý gruba baþarýyla eklendi."
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("HATA: " + ex.Message);
+                return StatusCode(500, "Sunucu hatasý: " + ex.Message);
+            }
         }
+
 
         public class SaveUserAppRoleRequest
         {

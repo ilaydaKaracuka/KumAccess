@@ -308,52 +308,56 @@
     });
 });
 
-     async function saveApplications() {
-            if (!selectedGroupId) {
-                alert("Lütfen önce bir grup ayarlarını açın.");
-                return;
-            }
-
-                const selectedAppCheckboxes = document.querySelectorAll('#groupSettings_app input[type="checkbox"]:checked');
-                const selectedRoleCheckboxes = document.querySelectorAll('#groupSettings_role input[type="checkbox"]:checked');
-
-            const selectedAppIds = Array.from(selectedAppCheckboxes).map(cb => parseInt(cb.value));
-            const selectedRoleIds = Array.from(selectedRoleCheckboxes).map(cb => parseInt(cb.value));
-         if ((selectedAppIds.length > 0 && selectedRoleIds.length === 0) ||
-            (selectedRoleIds.length > 0 && selectedAppIds.length === 0)){
-            alert("Lütfen en az bir uygulama veya bir rol seçin.");
+        async function saveApplications() {
+        if (!selectedGroupId) {
+            alert("Lütfen önce bir grup ayarlarını açın.");
             return;
         }
 
+        const selectedAppCheckboxes = document.querySelectorAll('#groupSettings_app input[type="checkbox"]:checked');
+        const selectedRoleCheckboxes = document.querySelectorAll('#groupSettings_role input[type="checkbox"]:checked');
 
-            const token = document.querySelector('#token-form input[name="__RequestVerificationToken"]').value;
+        const selectedAppIds = Array.from(selectedAppCheckboxes).map(cb => parseInt(cb.value));
+        const selectedRoleIds = Array.from(selectedRoleCheckboxes).map(cb => parseInt(cb.value));
 
-            for (const appId of selectedAppIds) {
-                for (const roleId of selectedRoleIds) {
-                    const payload = {
-                        GroupId: selectedGroupId,
-                        applicationId: appId,
-                        roleId: roleId
-                    };
+        if ((selectedAppIds.length > 0 && selectedRoleIds.length === 0) ||
+            (selectedRoleIds.length > 0 && selectedAppIds.length === 0)) {
+            alert("Lütfen en az bir uygulama ve bir rol seçin.");
+            return;
+        }
 
-                        await fetch('/Groups/Index?handler=SaveGroupAppRole', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': token
-            },
-            body: JSON.stringify(payload)
-        });
+        const token = document.querySelector('#token-form input[name="__RequestVerificationToken"]').value;
 
+        for (const appId of selectedAppIds) {
+            for (const roleId of selectedRoleIds) {
+                const payload = {
+                    GroupId: selectedGroupId,
+                    ApplicationId: appId,
+                    RoleId: roleId
+                };
+
+                const response = await fetch('/Groups/Index?handler=SaveGroupAppRole', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert(`Uyarı: ${result.message}`);
+                    return; // işlemi durdur
                 }
             }
-
-            alert("Kayıtlar başarıyla eklendi.");
-
-       
-
-             document.querySelectorAll('#groupSettings_app input[type="checkbox"]').forEach(cb => cb.checked = false);
-        document.querySelectorAll('#groupSettings_role input[type="checkbox"]').forEach(cb => cb.checked = false);
-
         }
+
+        alert("Kayıtlar başarıyla eklendi.");
+
+        document.querySelectorAll('#groupSettings_app input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('#groupSettings_role input[type="checkbox"]').forEach(cb => cb.checked = false);
+    }
+
 </script>

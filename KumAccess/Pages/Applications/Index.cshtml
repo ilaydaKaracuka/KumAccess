@@ -105,7 +105,7 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', function () {
-                 const detailIcons = document.querySelectorAll('.details-icon');
+               const detailIcons = document.querySelectorAll('.details-icon');
         detailIcons.forEach(icon => {
             icon.addEventListener('click', async function (event) {
                 event.stopPropagation();
@@ -116,39 +116,68 @@
 
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-                const response = await fetch('/Applications/Index?handler=GetAppGroups', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify({ applicationId })
-                });
+                try {
+                    // Kullanıcı ve grup verilerini aynı anda alıyoruz
+                    const [userResponse, groupResponse] = await Promise.all([
+                        fetch('/Applications/Index?handler=GetAppUsers', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': token
+                            },
+                            body: JSON.stringify({ applicationId })
+                        }),
+                        fetch('/Applications/Index?handler=GetAppGroups', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': token
+                            },
+                            body: JSON.stringify({ applicationId })
+                        })
+                    ]);
 
-                if (!response.ok) {
-                    const text = await response.text();
-                    console.error("Sunucu hatası:", text);
+                    if (!userResponse.ok || !groupResponse.ok) {
+                        throw new Error('Veri alınamadı');
+                    }
+
+                    const userResult = await userResponse.json();
+                    const groupResult = await groupResponse.json();
+
+                    // Kullanıcı verilerini ekleyelim
+                    const tbodyUser = document.querySelector('#app_userTable tbody');
+                    tbodyUser.innerHTML = ''; // Eski verileri temizle
+
+                    userResult.forEach(user => {
+                        tbodyUser.innerHTML += `
+                            <tr>
+                                <td>${user.userId}</td>
+                                <td>${user.firstName}</td>
+                                <td>${user.lastName}</td>
+                                <td>${user.roleName}</td>
+                            </tr>
+                        `;
+                    });
+
+                    // Grup verilerini ekleyelim
+                    const tbodyGroup = document.querySelector('#app_groupTable tbody');
+                    tbodyGroup.innerHTML = ''; // Eski verileri temizle
+
+                    groupResult.forEach(item => {
+                        tbodyGroup.innerHTML += `
+                            <tr>
+                                <td>${item.groupId}</td>
+                                <td>${item.groupName}</td>
+                                <td>${item.roleName}</td>
+                            </tr>
+                        `;
+                    });
+
+                    showAccordion();
+                } catch (error) {
+                    console.error("Sunucu hatası:", error);
                     alert("Veriler alınamadı.");
-                    return;
                 }
-
-                const result = await response.json();
-
-                // Kullanıcı ve grup verilerini tabloya ekle
-                const tbodyGroup = document.querySelector('#app_groupTable tbody');
-                tbodyGroup.innerHTML = '';
-
-                result.forEach(item => {
-                    tbodyGroup.innerHTML += `
-                        <tr>
-                            <td>${item.groupId}</td>
-                            <td>${item.groupName}</td>
-                            <td>${item.roleName}</td>
-                        </tr>
-                    `;
-                });
-
-                showAccordion();
             });
         });
     });

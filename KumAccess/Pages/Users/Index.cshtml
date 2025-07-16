@@ -247,7 +247,6 @@
     });
 
 
-
     async function saveApplications() {
         if (!selectedUserId) {
             alert("Lütfen önce bir kullanıcının ayarlarını açın.");
@@ -256,64 +255,92 @@
 
         const selectedAppCheckboxes = document.querySelectorAll('#usersSettings_app input[type="checkbox"]:checked');
         const selectedRoleCheckboxes = document.querySelectorAll('#usersSettings_role input[type="checkbox"]:checked');
+        const selectedGroupCheckboxes = document.querySelectorAll('#usersSettings_group input[type="checkbox"]:checked');
 
         const selectedAppIds = Array.from(selectedAppCheckboxes).map(cb => parseInt(cb.value));
         const selectedRoleIds = Array.from(selectedRoleCheckboxes).map(cb => parseInt(cb.value));
-     if ((selectedAppIds.length > 0 && selectedRoleIds.length === 0) ||
-        (selectedRoleIds.length > 0 && selectedAppIds.length === 0)){
-        alert("Lütfen en az bir uygulama veya bir rol seçin.");
-        return;
-    }
+        const selectedGroupIds = Array.from(selectedGroupCheckboxes).map(cb => parseInt(cb.value));
 
+        // En az bir application ve bir rol seçili olmalı
+        if ((selectedAppIds.length > 0 && selectedRoleIds.length === 0) ||
+            (selectedRoleIds.length > 0 && selectedAppIds.length === 0)) {
+            alert("Lütfen hem bir uygulama hem de bir rol seçin.");
+            return;
+        }
 
         const token = document.querySelector('#token-form input[name="__RequestVerificationToken"]').value;
 
+        let roleGroupDuplicateWarnings = [];
+        let anyNewUserAppRoleSaved = false;
+        let anyNewUserGroupSaved = false;
+
+        // Uygulama + Rol kaydet
         for (const appId of selectedAppIds) {
             for (const roleId of selectedRoleIds) {
-                    const payload = {
-        userId: parseInt(selectedUserId),
-        applicationId: appId,
-        roleId: roleId
-    };
+                const payload = {
+                    userId: parseInt(selectedUserId),
+                    applicationId: appId,
+                    roleId: roleId
+                };
 
+                const response = await fetch('/Users/Index?handler=SaveUserAppRole', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-                    await fetch('/Users/Index?handler=SaveUserAppRole', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': token
-        },
-        body: JSON.stringify(payload)
-    });
+                const result = await response.json();
 
+                if (result.success) {
+                    anyNewUserAppRoleSaved = true;
+                } else {
+                    roleGroupDuplicateWarnings.push(result.message || "Bu uygulama ve rol kombinasyonu zaten atanmış.");
+                }
             }
         }
 
-        alert("Kayıtlar başarıyla eklendi.");
+        // Grup kaydet
+        for (const groupId of selectedGroupIds) {
+            const payload = {
+                userId: parseInt(selectedUserId),
+                groupId: groupId
+            };
 
-    const selectedGroupCheckboxes = document.querySelectorAll('#usersSettings_group input[type="checkbox"]:checked');
-    const selectedGroupIds = Array.from(selectedGroupCheckboxes).map(cb => parseInt(cb.value));
+            const response = await fetch('/Users/Index?handler=SaveUserGroup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(payload)
+            });
 
-    for (const groupId of selectedGroupIds) {
-        const payload = {
-        userId: parseInt(selectedUserId),
-            groupId: groupId
-        };
+            const result = await response.json();
 
-        await fetch('/Users/Index?handler=SaveUserGroup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': token
-            },
-            body: JSON.stringify(payload)
-        });
+            if (result.success) {
+                anyNewUserGroupSaved = true;
+            } else {
+                roleGroupDuplicateWarnings.push(result.message || "Bu kullanıcı zaten bu gruba atanmış.");
+            }
+        }
+
+        // Sonuçları göster
+        if (anyNewUserAppRoleSaved || anyNewUserGroupSaved) {
+            alert("Yeni kayıtlar başarıyla eklendi.");
+        }
+
+        if (roleGroupDuplicateWarnings.length > 0) {
+            alert("Bazı atamalar yapılamadı:\n" + roleGroupDuplicateWarnings.join('\n'));
+        }
+
+        // Checkboxları temizle
+        document.querySelectorAll('#usersSettings_app input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('#usersSettings_role input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('#usersSettings_group input[type="checkbox"]').forEach(cb => cb.checked = false);
     }
 
-         document.querySelectorAll('#usersSettings_app input[type="checkbox"]').forEach(cb => cb.checked = false);
-    document.querySelectorAll('#usersSettings_role input[type="checkbox"]').forEach(cb => cb.checked = false);
-    document.querySelectorAll('#usersSettings_group input[type="checkbox"]').forEach(cb => cb.checked = false);
-
-    }
 
 </script>

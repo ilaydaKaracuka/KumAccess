@@ -17,12 +17,13 @@ namespace KumAccess.Pages.Groups
         private readonly GroupAppRoleSet _groupAppRoleSet;
         private readonly UserGroupGet _userGroupGet;
         private readonly UserGet _userGet;
+        private readonly GroupAppRoleGet _groupAppRoleGet;
 
         public List<App> Applications { get; set; }
         public List<Role> Roles { get; set; }
         public List<Group> Groups { get; set; }
 
-        public IndexModel(GroupSet groupSet, GroupGet groupService, ApplicationGet applicationService, RoleGet roleService, GroupAppRoleSet groupAppRoleSet, UserGroupGet userGroupGet, UserGet userGet)
+        public IndexModel(GroupSet groupSet, GroupGet groupService, ApplicationGet applicationService, RoleGet roleService, GroupAppRoleGet groupAppRoleGet, GroupAppRoleSet groupAppRoleSet, UserGroupGet userGroupGet, UserGet userGet)
         {
             _groupSet = groupSet;
             _applicationService = applicationService;
@@ -32,6 +33,7 @@ namespace KumAccess.Pages.Groups
             _userGroupGet = userGroupGet;
             _userGet = userGet;
 
+            _groupAppRoleGet = groupAppRoleGet;
 
 
         }
@@ -66,9 +68,6 @@ namespace KumAccess.Pages.Groups
                 using var reader = new StreamReader(Request.Body);
                 var body = await reader.ReadToEndAsync();
 
-                Console.WriteLine(" Gelen JSON:");
-                Console.WriteLine(body);
-
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
@@ -76,25 +75,37 @@ namespace KumAccess.Pages.Groups
 
                 var payload = JsonSerializer.Deserialize<SaveGroupAppRoleRequest>(body, options);
 
-                if (payload != null && payload.GroupId > 0 && payload.ApplicationId > 0 && payload.RoleId > 0)
+                if (payload == null || payload.GroupId <= 0 || payload.ApplicationId <= 0 || payload.RoleId <= 0)
                 {
-                    Console.WriteLine($" Insert denemesi: UserId={payload.GroupId}, AppId={payload.ApplicationId}, RoleId={payload.RoleId}");
-
-                    await _groupAppRoleSet.AddGroupAppRoleAsync(payload.GroupId, payload.ApplicationId, payload.RoleId);
-
-                    Console.WriteLine(" Veritabanýna baþarýyla eklendi!");
-                    return new JsonResult(new { success = true });
+                    return BadRequest(new { success = false, message = "Eksik veya hatalý veri." });
                 }
 
-                Console.WriteLine(" Geçersiz veri!");
-                return BadRequest("Eksik veya hatalý veri.");
+                // Zaten atanmýþ mý kontrol et
+                var existing = _groupAppRoleGet.GetAllGroupAppRoles()
+                    .Any(x => x.GroupId == payload.GroupId &&
+                              x.ApplicationId == payload.ApplicationId &&
+                              x.RoleId == payload.RoleId);
+
+                if (existing)
+                {
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = "Bu uygulama ve rol zaten bu gruba atanmýþ."
+                    });
+                }
+
+                await _groupAppRoleSet.AddGroupAppRoleAsync(payload.GroupId, payload.ApplicationId, payload.RoleId);
+
+                return new JsonResult(new { success = true, message = "Atama baþarýyla kaydedildi." });
             }
             catch (Exception ex)
             {
-                Console.WriteLine(" HATA: " + ex.Message);
-                return StatusCode(500, "Sunucu hatasý: " + ex.Message);
+                Console.WriteLine("HATA: " + ex.Message);
+                return StatusCode(500, new { success = false, message = "Sunucu hatasý: " + ex.Message });
             }
         }
+
         public class SaveGroupAppRoleRequest
         {
             public int GroupId { get; set; }
