@@ -80,7 +80,6 @@ namespace KumAccess.Pages.Groups
                     return BadRequest(new { success = false, message = "Eksik veya hatalý veri." });
                 }
 
-                // Zaten atanmýþ mý kontrol et
                 var existing = _groupAppRoleGet.GetAllGroupAppRoles()
                     .Any(x => x.GroupId == payload.GroupId &&
                               x.ApplicationId == payload.ApplicationId &&

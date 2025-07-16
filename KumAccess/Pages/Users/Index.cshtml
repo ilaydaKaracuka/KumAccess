@@ -261,7 +261,6 @@
         const selectedRoleIds = Array.from(selectedRoleCheckboxes).map(cb => parseInt(cb.value));
         const selectedGroupIds = Array.from(selectedGroupCheckboxes).map(cb => parseInt(cb.value));
 
-        // En az bir application ve bir rol seçili olmalı
         if ((selectedAppIds.length > 0 && selectedRoleIds.length === 0) ||
             (selectedRoleIds.length > 0 && selectedAppIds.length === 0)) {
             alert("Lütfen hem bir uygulama hem de bir rol seçin.");
@@ -274,7 +273,6 @@
         let anyNewUserAppRoleSaved = false;
         let anyNewUserGroupSaved = false;
 
-        // Uygulama + Rol kaydet
         for (const appId of selectedAppIds) {
             for (const roleId of selectedRoleIds) {
                 const payload = {
@@ -327,7 +325,6 @@
             }
         }
 
-        // Sonuçları göster
         if (anyNewUserAppRoleSaved || anyNewUserGroupSaved) {
             alert("Yeni kayıtlar başarıyla eklendi.");
         }
@@ -336,7 +333,6 @@
             alert("Bazı atamalar yapılamadı:\n" + roleGroupDuplicateWarnings.join('\n'));
         }
 
-        // Checkboxları temizle
         document.querySelectorAll('#usersSettings_app input[type="checkbox"]').forEach(cb => cb.checked = false);
         document.querySelectorAll('#usersSettings_role input[type="checkbox"]').forEach(cb => cb.checked = false);
         document.querySelectorAll('#usersSettings_group input[type="checkbox"]').forEach(cb => cb.checked = false);

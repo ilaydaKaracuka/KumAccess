@@ -76,9 +76,9 @@ namespace KumAccess.Pages.Applications
                     var result = userAppRoles.Select(x => new
                     {
                         userId = x.UserId,
-                        firstName = users.FirstOrDefault(u => u.UserId == x.UserId)?.FirstName ?? "N/A",  // Varsayýlan deðer ekledim
-                        lastName = users.FirstOrDefault(u => u.UserId == x.UserId)?.LastName ?? "N/A",      // Varsayýlan deðer ekledim
-                        roleName = roles.FirstOrDefault(r => r.RoleId == x.RoleId)?.RoleName ?? "Unknown"  // Varsayýlan deðer ekledim
+                        firstName = users.FirstOrDefault(u => u.UserId == x.UserId)?.FirstName ?? "N/A",  
+                        lastName = users.FirstOrDefault(u => u.UserId == x.UserId)?.LastName ?? "N/A",      
+                        roleName = roles.FirstOrDefault(r => r.RoleId == x.RoleId)?.RoleName ?? "Unknown"  
                     }).ToList();
 
                     return new JsonResult(result);
@@ -109,13 +109,14 @@ namespace KumAccess.Pages.Applications
 
                 if (payload?.ApplicationId > 0)
                 {
-                    // GroupAppRole verilerini al
+                   
                     var groupAppRoles = _groupAppRoleGet.GetAllGroupAppRoles()
                         .Where(x => x.ApplicationId == payload.ApplicationId)
                         .ToList();
 
-                    var groups = _groupGet.GetAllGroups(); // Grup bilgilerini al
-                    var roles = _roleGet.GetAllRoles(); // Rol bilgilerini al
+                    var groups = _groupGet.GetAllGroups(); 
+                    var roles = _roleGet.GetAllRoles(); 
+
 
                     var result = groupAppRoles.Select(x => new
                     {

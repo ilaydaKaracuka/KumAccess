@@ -94,7 +94,7 @@
                 </thead>
                 <tbody>
 
-                    <!-- Diğer grup satırları -->
+                   
                 </tbody>
             </table>
         </div>
@@ -117,7 +117,6 @@
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
                 try {
-                    // Kullanıcı ve grup verilerini aynı anda alıyoruz
                     const [userResponse, groupResponse] = await Promise.all([
                         fetch('/Applications/Index?handler=GetAppUsers', {
                             method: 'POST',
@@ -144,9 +143,8 @@
                     const userResult = await userResponse.json();
                     const groupResult = await groupResponse.json();
 
-                    // Kullanıcı verilerini ekleyelim
                     const tbodyUser = document.querySelector('#app_userTable tbody');
-                    tbodyUser.innerHTML = ''; // Eski verileri temizle
+                    tbodyUser.innerHTML = ''; 
 
                     userResult.forEach(user => {
                         tbodyUser.innerHTML += `
@@ -159,7 +157,6 @@
                         `;
                     });
 
-                    // Grup verilerini ekleyelim
                     const tbodyGroup = document.querySelector('#app_groupTable tbody');
                     tbodyGroup.innerHTML = ''; // Eski verileri temizle
 

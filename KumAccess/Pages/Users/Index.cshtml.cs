@@ -56,13 +56,11 @@ namespace KumAccess.Pages.Users
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var payload = JsonSerializer.Deserialize<SaveUserAppRoleRequest>(body, options);
 
-                // Geçersiz veri kontrolü
                 if (payload == null || payload.UserId <= 0 || payload.ApplicationId <= 0 || payload.RoleId <= 0)
                 {
                     return BadRequest(new { success = false, message = "Eksik veya hatalý veri." });
                 }
 
-                // Zaten atanmýþ mý kontrolü
                 var existing = _userAppRoleGet.GetAllUserAppRoles()
                     .Any(x => x.UserId == payload.UserId &&
                               x.ApplicationId == payload.ApplicationId &&
@@ -74,7 +72,6 @@ namespace KumAccess.Pages.Users
                     return new JsonResult(new { success = false, message = "Bu kullanýcýya bu uygulama ve rol zaten atanmýþ." });
                 }
 
-                // Ekleme iþlemi
                 await _userAppRoleSet.AddUserAppRoleAsync(payload.UserId, payload.ApplicationId, payload.RoleId);
 
                 return new JsonResult(new { success = true, message = "Kayýt baþarýyla eklendi." });
@@ -177,7 +174,7 @@ namespace KumAccess.Pages.Users
             catch (Exception ex)
             {
                 Console.WriteLine("HATA: " + ex.Message);
-                return StatusCode(500, new { error = ex.Message }); // Düz JSON dön
+                return StatusCode(500, new { error = ex.Message }); 
             }
         }
 
