@@ -6,6 +6,8 @@ using System.Data.SqlClient;
 using KumAccess.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Environment.EnvironmentName = "Production";
+
 
 builder.Services.AddRazorPages();
 
