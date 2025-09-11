@@ -22,7 +22,7 @@ Sistemde şu yapılar bulunmaktadır:
 
 Bu yapılar arasındaki ilişkiler **ER Diyagramı** ile tanımlanmıştır.  
 
-<img src="Er_diyagrami.png" alt="ER Diyagramı" width="600"/>
+<img src="ER_diyagrami.png" alt="ER Diyagramı" width="600"/>
 
 ## 🖥️ Arayüz Tasarımı
 Arayüz tasarımları **Figma** ile hazırlanmış olup, sol tarafta sabit bir menü ve sağ tarafta içerik alanı yer almaktadır.  
