@@ -22,7 +22,8 @@ Sistemde şu yapılar bulunmaktadır:
 
 Bu yapılar arasındaki ilişkiler **ER Diyagramı** ile tanımlanmıştır.  
 
-![ER Diyagramı](ER_diyagrami.png)
+<!-- ER Diyagramını HTML ile ekleyelim -->
+<img src="ER_diyagrami.png" alt="ER Diyagramı" width="600"/>
 
 ## 🖥️ Arayüz Tasarımı
 Arayüz tasarımları **Figma** ile hazırlanmış olup, sol tarafta sabit bir menü ve sağ tarafta içerik alanı yer almaktadır.  
@@ -31,8 +32,3 @@ Arayüz tasarımları **Figma** ile hazırlanmış olup, sol tarafta sabit bir m
 - **Users**: Kullanıcı listesi, kullanıcı detayları, rol/grup atamaları.  
 - **Roles**: Roller, kullanıcı görüntüleme ve yeni rol oluşturma.  
 - **Groups**: Gruplar, grup üyeleri ve uygulama bazlı rol atamaları.  
-
-## 🚀 Kurulum
-1. Depoyu klonlayın:  
-   ```bash
-   git clone https://github.com/kullaniciadi/KumAccess.git
