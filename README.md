@@ -4,7 +4,7 @@ KumAccess, kurum içindeki kullanıcıların, grupların ve rollerin çeşitli u
 Proje kapsamında, kullanıcıların ve kullanıcı gruplarının belirli uygulamalarda hangi rollerle yetkili oldukları merkezi bir panelden yönetilebilmektedir.  
 
 ## 🎯 Amaç
-- Kurum içi uygulamalara erişim süreçlerini **güvenli**, **kontrol edilebilir** ve **merkezi** hale getirmek.  
+- Kurum içi uygulamalara erişim süreçlerini **kontrol edilebilir** ve **merkezi** hale getirmek.  
 - Kullanıcı, grup, rol ve uygulama temelli yetkilendirme mekanizması oluşturmak.  
 - İnsan Kaynakları tarafından toplu şekilde sağlanan kullanıcı listesini kullanarak yetki atamalarını gerçekleştirmek.  
 
