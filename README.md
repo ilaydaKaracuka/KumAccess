@@ -1,4 +1,4 @@
-# <img src="icon.png" alt="KumAccess Logo" width="40" style="vertical-align:middle;"/> KumAccess
+# <img src="kumaccess_icon.png" alt="KumAccess Logo" width="40" style="vertical-align:middle;"/> KumAccess
 
 KumAccess, kurum içindeki kullanıcıların, grupların ve rollerin çeşitli uygulamalara olan erişim yetkilerini yönetmeye yönelik geliştirilmiş bir **kullanıcı yetkilendirme web uygulamasıdır**.  
 Proje kapsamında, kullanıcıların ve kullanıcı gruplarının belirli uygulamalarda hangi rollerle yetkili oldukları merkezi bir panelden yönetilebilmektedir.  
@@ -32,3 +32,7 @@ Arayüz tasarımları **Figma** ile hazırlanmış olup, sol tarafta sabit bir m
 - **Roles**: Roller, kullanıcı görüntüleme ve yeni rol oluşturma.  
 - **Groups**: Gruplar, grup üyeleri ve uygulama bazlı rol atamaları.  
 
+## 🚀 Kurulum
+1. Depoyu klonlayın:  
+   ```bash
+   git clone https://github.com/kullaniciadi/KumAccess.git
