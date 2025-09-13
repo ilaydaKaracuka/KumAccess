@@ -33,4 +33,5 @@ Arayüz tasarımları **Figma** ile hazırlanmış olup, sol tarafta sabit bir m
 - **Groups**: Gruplar, grup üyeleri ve uygulama bazlı rol atamaları.
 - 
 ## 💾 Veritabanı Yedeği
-Projede kullanılan SQL Server veritabanı yedeğine aşağıdan ulaşabilirsiniz: [📂 kumaccess.bak](database/kumaccess.bak)
+Projede kullanılan SQL Server veritabanı yedeğine aşağıdan ulaşabilirsiniz: [📂 kumaccess.bak](./database/kumaccess.bak)
+
