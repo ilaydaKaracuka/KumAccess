@@ -30,4 +30,7 @@ Arayüz tasarımları **Figma** ile hazırlanmış olup, sol tarafta sabit bir m
 - **Applications**: Uygulama listesi, detay ve ekleme işlemleri (accordion + popup yapısı).  
 - **Users**: Kullanıcı listesi, kullanıcı detayları, rol/grup atamaları.  
 - **Roles**: Roller, kullanıcı görüntüleme ve yeni rol oluşturma.  
-- **Groups**: Gruplar, grup üyeleri ve uygulama bazlı rol atamaları.  
+- **Groups**: Gruplar, grup üyeleri ve uygulama bazlı rol atamaları.
+- 
+## 💾 Veritabanı Yedeği
+Projede kullanılan SQL Server veritabanı yedeğine aşağıdan ulaşabilirsiniz: [📂 kumaccess.bak](database/kumaccess.bak)
